@@ -1,4 +1,5 @@
 import re
+from os import path
 
 def expandSubnet(ip):
 	ansList = []
@@ -98,5 +99,10 @@ def ip2Subnet(ipTextFileName):
 # ipDecSub += '/%d' % size
 # print ipDecSub
 
-print ip2Subnet('ip.text')
-print expandSubnet(ip2Subnet('ip.text'))
+# filePath = path.relpath("./ip.text")
+
+filePath = path.dirname(path.abspath(__file__))
+filePath = path.join(filePath, 'ip.text')
+
+print '\n'.join(expandSubnet(ip2Subnet(filePath)))
+print ip2Subnet(filePath)

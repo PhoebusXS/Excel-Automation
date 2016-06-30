@@ -39,21 +39,20 @@ def ipDec2Bin(ip):
 		ansList.append(eightDigBin)
 	return '.'.join(ansList)
 
-def ipPrefixNSize(ipTextFileName):
-	ipTextFile = open(ipTextFileName)
-	ipList = []
-	for line in ipTextFile:
-		if ipValidate(line):
-			ipList.append(ipDec2Bin(line))
-	prefix = commonprefix(ipList)
+def ipPrefixNSize(ipList):
+	ansList = []
+	for ip in ipList:
+		if ipValidate(ip):
+			ansList.append(ipDec2Bin(ip))
+	prefix = commonprefix(ansList)
 	size = 0
 	for char in prefix:
 		if char != '.':
 			size += 1
 	return prefix, size
 
-def ip2Subnet(ipTextFileName):
-	prefix, size = ipPrefixNSize(ipTextFileName)
+def ip2Subnet(ipList):
+	prefix, size = ipPrefixNSize(ipList)
 	binList = prefix.split('.')
 	decList = []
 	for numStr in binList:
@@ -66,6 +65,44 @@ def ip2Subnet(ipTextFileName):
 	ipDecSub += '.0' * (4 - len(binList))
 	ipDecSub += '/%d' % size
 	return ipDecSub
+
+def prepareData(ipFilePath):
+	ipFile = open(ipFilePath)
+	ipList = []
+	toExpand = []
+	for line in ipFile:
+		if '\n' in line:
+			line = line[0:len(line)-1]
+		if ipValidate(line):
+			ipList.append(line)
+		elif ('-' in line) or ('~' in line):
+			ipStart, end = re.split('-|~', line)
+			ipEnd = ipStart.split('.')[0:3]
+			ipEnd.append(end)
+			ipEnd = '.'.join(ipEnd)
+			ipList.append(ipStart)
+			ipList.append(ipEnd)
+		elif ('/' in line):
+			toExpand.append(line)
+	ipList = sorted(ipList)
+	binList = []
+	for ip in ipList:
+		binList.append(ipDec2Bin(ip))
+	blockCount = -1
+	nestedList = []
+	prevPrefix = ''
+	currPrefix = ''
+	for ind, ip in enumerate(binList):
+		prevPrefix = currPrefix
+		currPrefix = ip[0:26]
+		if currPrefix == prevPrefix:
+			nestedList[blockCount].append(ipList[ind])
+		else:
+			blockCount += 1
+			nestedList.append([])
+			nestedList[blockCount].append(ipList[ind])
+	return nestedList, toExpand
+
 
 # EXTREMELY UGLY AND (NOT SO) EVIL TESTS
 
@@ -101,8 +138,28 @@ def ip2Subnet(ipTextFileName):
 
 # filePath = path.relpath("./ip.text")
 
+# print '\n'.join(expandSubnet(ip2Subnet(filePath)))
+# print ip2Subnet(filePath)
+
+# print '12.3.4.5-122'.split('-')
+# ipstart,end = re.split('-|~', '12.3.4.5~122')
+
+# line = '12.3.4.5-122'
+# if ('-' in line) or ('~' in line):
+# 	ipStart, end = re.split('-|~', line)
+# 	ipEnd = ipStart.split('.')[0:3]
+# 	ipEnd.append(end)
+# 	ipEnd = '.'.join(ipEnd)
+# print ipStart, ipEnd
+
+
+# MAIN
+
 filePath = path.dirname(path.abspath(__file__))
 filePath = path.join(filePath, 'ip.text')
-
-print '\n'.join(expandSubnet(ip2Subnet(filePath)))
-print ip2Subnet(filePath)
+# print ip2Subnet(prepareData(filePath))
+toConsolidate, toExpand = prepareData(filePath)
+for item in toConsolidate:
+	print ip2Subnet(item)
+for item in toExpand:
+	print expandSubnet(item)

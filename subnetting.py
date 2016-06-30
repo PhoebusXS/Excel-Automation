@@ -89,19 +89,19 @@ def prepareData(ipFilePath):
 	for ip in ipList:
 		binList.append(ipDec2Bin(ip))
 	blockCount = -1
-	nestedList = []
+	toConsolidate = []
 	prevPrefix = ''
 	currPrefix = ''
 	for ind, ip in enumerate(binList):
 		prevPrefix = currPrefix
 		currPrefix = ip[0:26]
 		if currPrefix == prevPrefix:
-			nestedList[blockCount].append(ipList[ind])
+			toConsolidate[blockCount].append(ipList[ind])
 		else:
 			blockCount += 1
-			nestedList.append([])
-			nestedList[blockCount].append(ipList[ind])
-	return nestedList, toExpand
+			toConsolidate.append([])
+			toConsolidate[blockCount].append(ipList[ind])
+	return toConsolidate, toExpand
 
 
 # EXTREMELY UGLY AND (NOT SO) EVIL TESTS
@@ -162,4 +162,4 @@ toConsolidate, toExpand = prepareData(filePath)
 for item in toConsolidate:
 	print ip2Subnet(item)
 for item in toExpand:
-	print expandSubnet(item)
+	print '\n'.join(expandSubnet(item))

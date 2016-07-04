@@ -157,9 +157,11 @@ def prepareData(ipFilePath):
 
 filePath = path.dirname(path.abspath(__file__))
 filePath = path.join(filePath, 'ip.text')
-# print ip2Subnet(prepareData(filePath))
+
 toConsolidate, toExpand = prepareData(filePath)
+
 for item in toConsolidate:
 	print ip2Subnet(item)
+
 for item in toExpand:
 	print '\n'.join(expandSubnet(item))

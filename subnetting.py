@@ -1,20 +1,8 @@
 import re
 from os import path
-
-def expandSubnet(ip):
-	ansList = []
-	ipComponents = re.split('\.|/', ip)
-	if 24 <= int(ipComponents[4]) <= 31:
-		l = 32 - int(ipComponents[4])
-		mask = int((8 - l) * '1' + l * '0', 2)
-		ip4masked = (int(ipComponents[3]) & mask)
-		for i in range(0, int(l * '1', 2) + 1):
-			ipTemp = ipComponents[0:3]
-			ipTemp.append(str(ip4masked + i))
-			ansList.append('.'.join(ipTemp))
-		return ansList
-	else:
-		return
+from os import isatty
+from sys import stdin
+from sys import exit
 
 def commonprefix(array):
 	mini = min(array)
@@ -44,6 +32,8 @@ def ipPrefixNSize(ipList):
 	for ip in ipList:
 		if ipValidate(ip):
 			ansList.append(ipDec2Bin(ip))
+	if len(ansList) == 1:
+		return 0, 0
 	prefix = commonprefix(ansList)
 	size = 0
 	for char in prefix:
@@ -51,8 +41,25 @@ def ipPrefixNSize(ipList):
 			size += 1
 	return prefix, size
 
-def ip2Subnet(ipList):
+def expandSubnet(ip):
+	ansList = []
+	ipComponents = re.split('\.|/', ip)
+	if 24 <= int(ipComponents[4]) <= 31:
+		l = 32 - int(ipComponents[4])
+		mask = int((8 - l) * '1' + l * '0', 2)
+		ip4masked = (int(ipComponents[3]) & mask)
+		for i in range(0, int(l * '1', 2) + 1):
+			ipTemp = ipComponents[0:3]
+			ipTemp.append(str(ip4masked + i))
+			ansList.append('.'.join(ipTemp))
+		return ansList
+	else:
+		return
+
+def consolidateSubnet(ipList):
 	prefix, size = ipPrefixNSize(ipList)
+	if prefix == 0:
+		return
 	binList = prefix.split('.')
 	decList = []
 	for numStr in binList:
@@ -66,8 +73,8 @@ def ip2Subnet(ipList):
 	ipDecSub += '/%d' % size
 	return ipDecSub
 
-def prepareData(ipFilePath):
-	ipFile = open(ipFilePath)
+def prepareData(ipFile):
+	# ipFile = open(ipFilePath)
 	ipList = []
 	toExpand = []
 	for line in ipFile:
@@ -138,8 +145,8 @@ def prepareData(ipFilePath):
 
 # filePath = path.relpath("./ip.text")
 
-# print '\n'.join(expandSubnet(ip2Subnet(filePath)))
-# print ip2Subnet(filePath)
+# print '\n'.join(expandSubnet(consolidateSubnet(filePath)))
+# print consolidateSubnet(filePath)
 
 # print '12.3.4.5-122'.split('-')
 # ipstart,end = re.split('-|~', '12.3.4.5~122')
@@ -155,13 +162,43 @@ def prepareData(ipFilePath):
 
 # MAIN
 
-filePath = path.dirname(path.abspath(__file__))
-filePath = path.join(filePath, 'ip.text')
+# filePath = path.dirname(path.abspath(__file__))
+# filePath = path.join(filePath, 'ip.text')
 
-toConsolidate, toExpand = prepareData(filePath)
+ipInput = []
 
-for item in toConsolidate:
-	print ip2Subnet(item)
+while True:
+	try:
+		line = raw_input()
+	except:
+		break
+	if line == '':
+		break
+	else:
+		ipInput.append(line)
 
-for item in toExpand:
-	print '\n'.join(expandSubnet(item))
+toConsolidate, toExpand = prepareData(ipInput)
+
+r = 'b'
+
+if isatty(stdin.fileno()):
+	if not not ipInput:
+		r = raw_input('(e)xpand, (c)onsolidate, or (b)oth? > ')
+
+if (r == 'b') or (r == 'e'):
+	for item in toExpand:
+		expanded = expandSubnet(item)
+		if expanded == None:
+			print 'invalid subnet size, /24~31 only.'
+		else:
+			print '\n'.join(expanded)
+			print
+
+if (r == 'b') or (r == 'c'):
+	for item in toConsolidate:
+		consolidated = consolidateSubnet(item)
+		if consolidated == None:
+			print 'single IP would not be consolidated.'
+		else:
+			print consolidated
+			print

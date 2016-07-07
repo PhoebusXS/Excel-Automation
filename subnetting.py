@@ -3,6 +3,8 @@ from os import path
 from os import isatty
 from sys import stdin
 from sys import exit
+from optparse import OptionParser
+parser = OptionParser()
 
 def commonprefix(array):
 	mini = min(array)
@@ -12,7 +14,7 @@ def commonprefix(array):
 			return mini[:ind]
 
 def ipValidate(ipStr):
-	if re.match(r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$", ipStr):
+	if re.match(r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$', ipStr):
 		return True
 	else:
 		return False
@@ -143,7 +145,7 @@ def prepareData(ipFile):
 # ipDecSub += '/%d' % size
 # print ipDecSub
 
-# filePath = path.relpath("./ip.text")
+# filePath = path.relpath('./ip.text')
 
 # print '\n'.join(expandSubnet(consolidateSubnet(filePath)))
 # print consolidateSubnet(filePath)
@@ -165,6 +167,12 @@ def prepareData(ipFile):
 # filePath = path.dirname(path.abspath(__file__))
 # filePath = path.join(filePath, 'ip.text')
 
+parser.add_option('-e', '--expand',
+                  action='store_true', dest='expandMode', default=False)
+parser.add_option('-c', '--consolidate',
+                  action='store_true', dest='consolidateMode', default=False)
+(options, args) = parser.parse_args()
+
 ipInput = []
 
 while True:
@@ -179,13 +187,7 @@ while True:
 
 toConsolidate, toExpand = prepareData(ipInput)
 
-r = 'b'
-
-if isatty(stdin.fileno()):
-	if not not ipInput:
-		r = raw_input('(e)xpand, (c)onsolidate, or (b)oth? > ')
-
-if (r == 'b') or (r == 'e'):
+if options.expandMode:
 	for item in toExpand:
 		expanded = expandSubnet(item)
 		if expanded == None:
@@ -194,7 +196,7 @@ if (r == 'b') or (r == 'e'):
 			print
 			print '\n'.join(expanded)
 
-if (r == 'b') or (r == 'c'):
+if options.consolidateMode:
 	for item in toConsolidate:
 		consolidated = consolidateSubnet(item)
 		if consolidated == None:

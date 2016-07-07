@@ -191,8 +191,8 @@ if (r == 'b') or (r == 'e'):
 		if expanded == None:
 			print 'invalid subnet size, /24~31 only.'
 		else:
-			print '\n'.join(expanded)
 			print
+			print '\n'.join(expanded)
 
 if (r == 'b') or (r == 'c'):
 	for item in toConsolidate:
@@ -200,5 +200,7 @@ if (r == 'b') or (r == 'c'):
 		if consolidated == None:
 			print 'single IP would not be consolidated.'
 		else:
-			print consolidated
 			print
+			print consolidated
+
+print

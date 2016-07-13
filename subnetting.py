@@ -168,9 +168,11 @@ def prepareData(ipFile):
 # filePath = path.join(filePath, 'ip.text')
 
 parser.add_option('-e', '--expand',
-                  action='store_true', dest='expandMode', default=False)
+                  action = 'store_true', dest = 'expandMode', default = False, 
+                  help = 'expand subnets into list of IP\'s')
 parser.add_option('-c', '--consolidate',
-                  action='store_true', dest='consolidateMode', default=False)
+                  action = 'store_true', dest = 'consolidateMode', default = False, 
+                  help = 'consolidate IP\'s into subnets')
 (options, args) = parser.parse_args()
 
 ipInput = []
@@ -187,22 +189,20 @@ while True:
 
 toConsolidate, toExpand = prepareData(ipInput)
 
-if options.expandMode:
+if options.expandMode | ((~ options.expandMode) & (~ options.consolidateMode)):
 	for item in toExpand:
 		expanded = expandSubnet(item)
 		if expanded == None:
 			print 'invalid subnet size, /24~31 only.'
 		else:
-			print
 			print '\n'.join(expanded)
+		print
 
-if options.consolidateMode:
+if options.consolidateMode | ((~ options.expandMode) & (~ options.consolidateMode)):
 	for item in toConsolidate:
 		consolidated = consolidateSubnet(item)
 		if consolidated == None:
 			print 'single IP would not be consolidated.'
 		else:
-			print
 			print consolidated
-
-print
+		print
